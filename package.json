@@ -1,0 +1,28 @@
+{
+  "name": "zkwordle",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@zk-kit/incremental-merkle-tree": "^1.0.0",
+    "ethers": "5.7.0",
+    "sqlite3": "5.1.0",
+    "@openzeppelin/contracts": "^4.7.2"
+  },
+  "devDependencies": {
+    "chai": "^4.3.6",
+    "circomlib": "^2.0.2",
+    "circomlibjs": "0.0.8",
+    "hardhat": "^2.11.1",
+    "hardhat-circom": "^3.3.1"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "scripts": {
+    "test": "yarn hardhat test",
+    "ptau": "./scripts/ptau.sh",
+    "compile-circom": "circom zk/circuits/wordle.circom -o zk/ --r1cs --wasm",
+    "setup": "./scripts/circuits.sh"
+  }
+}
