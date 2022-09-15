@@ -1,30 +1,23 @@
-# circom-starter
+# ZK Wordle
 
-A basic circom project using [Hardhat](https://github.com/nomiclabs/hardhat) and [hardhat-circom](https://github.com/projectsophon/hardhat-circom). This combines the multiple steps of the [Circom](https://github.com/iden3/circom) and [SnarkJS](https://github.com/iden3/snarkjs) workflow into your [Hardhat](https://hardhat.org) workflow.
+This project presents a zero-knowledge version of the popular word guessing game called Wordle. 
 
-By providing configuration containing your Phase 1 Powers of Tau and circuits, this plugin will:
+# Wordle in a nutshell
 
-1. Compile the circuits
-2. Apply the final beacon
-3. Output your `wasm` and `zkey` files
-4. Generate and output a `Verifier.sol`
+Wordle is a game where a player is presented with a hidden random word and has a fixed number of attempts to successfully guess the hidden word. On each attempt, the player is given a clue to let them know if the letters of the word they're guessing match up with those of the real word. More info on how it works here: https://youtu.be/cGLL6i39_50 
 
-## Documentation
+# Problems / Loopholes with current Wordle Implementations
 
-See the source projects for full documentation and configuration
+- Players must trust that game master does not cheat them by changing their word mid gameplay
+- Players must also trust that the clue being provided by the game master is right. 
 
-## Install
+# Goal
 
-`yarn` to install dependencies
+As a ZK game master, the goal is to convert this game from a trusted setup to a completely trustless setup using ZK and blockchain technologies (solidity, circom and snarkJS).
+- By Merkilizing the solution and storing on chain, player can be sure that game master will not switch up word during gameplay
+- By providing a ZK proof of the clue, game master can prove to player that clue is right without having to reveal the solution in the process.
 
-## Development builds
+# Assumptions, constraints and changes to original game that have been made in this POC:
 
-`yarn circom:dev` to build deterministic development circuits.
-
-Further, for debugging purposes, you may wish to inspect the intermediate files. This is possible with the `--debug` flag which the `circom:dev` task enables by default. You'll find them (by default) in `artifacts/circom/`
-
-To build a single circuit during development, you can use the `--circuit` CLI parameter. For example, if you make a change to `hash.circom` and you want to _only_ rebuild that, you can run `yarn circom:dev --circuit hash`.
-
-## Production builds
-
-`yarn circom:prod` for production builds (using `Date.now()` as entropy)
+- Each game consists of only 4 letter words. 
+- Clue provided tells user whether the letters in their guess is in the right place or not. 
