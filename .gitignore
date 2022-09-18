@@ -13,3 +13,4 @@ zk/zkey
 
 
 .env
+*dev.db*
