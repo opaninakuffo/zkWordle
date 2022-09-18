@@ -5,21 +5,21 @@ include "../../node_modules/circomlib/circuits/comparators.circom";
 include "./tree.circom";
 
 template CalculateCommitment() {
-    signal input letterIdentifier;
+    signal input letter;
     signal input gameIdentifier;
 
     signal output out;
 
     component poseidon = Poseidon(2);
 
-    poseidon.inputs[0] <== letterIdentifier;
+    poseidon.inputs[0] <== letter;
     poseidon.inputs[1] <== gameIdentifier;
 
     out <== poseidon.out;
 }
 
 template WordleSemaphore(nLevels, letterCount) {
-    signal input letterIdentifier[letterCount];
+    signal input letters[letterCount];
     signal input gameIdentifier;
     signal input treePathIndices[letterCount][nLevels];
     signal input treeSiblings[letterCount][nLevels];
@@ -36,7 +36,7 @@ template WordleSemaphore(nLevels, letterCount) {
       inclusionProof[i] = MerkleTreeInclusionProof(nLevels);
       isEq[i] = IsEqual(); 
 
-      calculateCommitment[i].letterIdentifier <== letterIdentifier[i];
+      calculateCommitment[i].letter <== letters[i];
       calculateCommitment[i].gameIdentifier <== gameIdentifier;
 
       inclusionProof[i].leaf <== calculateCommitment[i].out;
@@ -54,4 +54,4 @@ template WordleSemaphore(nLevels, letterCount) {
     }
 }
 
-component main { public [root] } = WordleSemaphore(2, 4);
+component main { public [letters, clue, root] } = WordleSemaphore(2, 4);

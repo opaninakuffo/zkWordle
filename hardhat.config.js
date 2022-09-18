@@ -1,7 +1,8 @@
-require("hardhat-circom");
+require('dotenv').config();
+require("@nomicfoundation/hardhat-toolbox");
 
 // private environment information
-// const { INFURA, MNEMONIC, ETHERSCAN, POLYGONSCAN } = process.env
+const { ALCHEMY_API_URL, DEPLOYER_PRIVATE_KEY } = process.env
 
 /**
  * Return a hardhat compiler for a given version
@@ -24,18 +25,12 @@ require("hardhat-circom");
  */
 module.exports = {
   solidity: {
-    compilers: [makeCompiler('0.6.11'), makeCompiler('0.8.17')]
+    compilers: [makeCompiler('0.6.11'), makeCompiler('0.8.17')],
   },
-  circom: {
-    inputBasePath: "./zk/circuits/",
-    ptau: "https://hermezptau.blob.core.windows.net/ptau/powersOfTau28_hez_final_12.ptau",
-    circuits: [
-      {
-        name: "wordle"
-      },
-      {
-        name: "tree"
-      }
-    ],
-  },
+  networks: {
+    goerli: {
+      url: ALCHEMY_API_URL,
+      accounts: [DEPLOYER_PRIVATE_KEY]
+    }
+  }
 };

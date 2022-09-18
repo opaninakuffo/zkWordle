@@ -10,3 +10,6 @@ artifacts
 zk/wordle*
 zk/ptau
 zk/zkey
+
+
+.env

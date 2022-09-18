@@ -2,96 +2,223 @@ const BigNumber = require('ethers').BigNumber
 const randomBytes = require('ethers').utils.randomBytes
 const poseidon = require("circomlibjs").poseidon
 const IncrementalMerkleTree = require('@zk-kit/incremental-merkle-tree').IncrementalMerkleTree
+const snarkjs = require("snarkjs");
+const path = require("path");
+const { PrismaClient } = require('@prisma/client');
+const { exit } = require('process');
+const words = require('./words').words
 
-const zk = require('@zk-kit/incremental-merkle-tree')
-zk.IncrementalMerkleTree
-
-const crypto = require('crypto');
+const prisma = new PrismaClient()
 
 module.exports = {
-  generateRandomNumber: (numOfBytes=31) => {
-    return BigNumber.from(randomBytes(numOfBytes)).toBigInt()
+  setupGame: async (playerAddress, numberOfGuesses) => {
+    // randomly pick word from list of words
+    const solution = words[Math.floor(Math.random() * words.length)];
+    console.log("word:", solution);
+    // generate random identifier for game
+    const gameIdentifier = generateRandomNumber();
+  
+    // set up merkle tree based on solution and identifier
+    const tree = setupMerkleTree(solution, gameIdentifier)
+    const stringTree = stringyTree(tree)
+
+    // store id, identifier, tree, root, and number of tries left in db
+    const game = await prisma.game.create({
+      data: {
+        root: tree.root.toString(),
+        tree: stringTree,
+        identifier: gameIdentifier.toString(),
+        playerAddress,
+        guessesLeft: numberOfGuesses,
+      }
+    })
+
+    return {
+      id: game.id,
+      root: game.root,
+      playerAddress,
+      timestamp: Math.round(game.createdAt.getTime() / 1000),
+    }
+    // if user rejects, route api to delete game record
   },
 
-  // Creates and returns merkle tree for game
-  setupMerkleTree: (solution, gameIdentifier) => {
+  playerGuess: async (id, guess) => {
+    const game = await prisma.game.findUnique({
+      where: {
+        id: Number(id),
+      }
+    })
+
+    if (game.guessesLeft > 0 && game.status != 'won') {
+      const tree = jsonifyTree(game.tree);
+
+      const gameIdentifier = BigInt(game.identifier);
+      const clue = generateClue(tree, gameIdentifier, guess);
+      const circuitInput = createInput(guess, gameIdentifier, clue, tree);
+      const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+        circuitInput,
+        path.join(__dirname, "..", "zk", "wordle_js", "wordle.wasm"),
+        path.join(__dirname, "..", "zk", "zkey", "wordle_final.zkey"),
+      );
+
+      const solidityCallData = await snarkjs.groth16.exportSolidityCallData(proof, publicSignals);
+      const a = JSON.parse(solidityCallData.slice(0, 140))
+      const b = JSON.parse(solidityCallData.slice(141, 424))
+      const c = JSON.parse(solidityCallData.slice(425, 565)) 
+      const input = JSON.parse(solidityCallData.slice(566))
+
+      let updatedGame;
+      const guessesLeft = game.guessesLeft - 1;
+      if (clue[0] == 1 && clue[1] == 1 && clue[2] == 1 && clue[3] == 1) {
+        updatedGame = await prisma.game.update({
+          where: {
+            id: Number(id),
+          },
+          data: {
+            guessesLeft,
+            status: "won"
+          },
+        })
+      } else {
+        if (guessesLeft == 0) {
+          updatedGame = await prisma.game.update({
+            where: {
+              id: Number(id),
+            },
+            data: {
+              guessesLeft,
+              status: "lost"
+            },
+          })
+        } else {
+          updatedGame = await prisma.game.update({
+            where: {
+              id: Number(id),
+            },
+            data: {
+              guessesLeft,
+            },
+          })
+        }
+      }
+
+
+      return {
+        id: game.id,
+        clue, 
+        guessesLeft: updatedGame.guessesLeft,
+        status: updatedGame.status,
+        solidityCallData: {
+          a,
+          b,
+          c,
+          input
+        }
+      }
+    } else {
+      let errors = [];
+
+      if (game.status == 'won') {
+        errors.push("already won");
+      }
+
+      if (game.guessesLeft <= 0) {
+        errors.push("no more guesses left");
+      }
+
+      throw Error(errors.join(' and '));
+    }
+  },
+
+  getGame: async (id) => {
+    return await prisma.game.findUnique({
+      where: {
+        id: Number(id),
+      },
+      select: {
+        id: true,
+        root: true,
+        guessesLeft: true,
+        createdAt: true,
+        status: true,
+        playerAddress: true,
+      }
+    })
+  },
+
+  deleteGame: async (id) => {
+    return await prisma.game.delete({
+      where: {
+        id: Number(id),
+      }
+    })
+  },
+}
+
+const generateRandomNumber = (numOfBytes=31) => {
+  return BigNumber.from(randomBytes(numOfBytes)).toBigInt()
+}
+
+const setupMerkleTree = (solution, gameIdentifier) => {
     const hashedSolution = []
     const tree = new IncrementalMerkleTree(poseidon, 2, BigInt(0), 2) // Binary tree.
-    solution = solution.split('');
     for (let i = 0; i < solution.length; i++) {
-      hashedSolution[i] = generateCommitment(hashInput(solution[i]), gameIdentifier)
+      hashedSolution[i] = generateCommitment(solution.charCodeAt(i), gameIdentifier)
       tree.insert(hashedSolution[i])
     }
     return tree
-  },
-
-  saveTreeToDB: (tree) => {
-    stringTree = JSON.stringify(tree, (key, value) =>
-        typeof value === 'bigint'
-            ? value.toString()
-            : value // return everything else unchanged
-    );
-
-    // insert string version to db (stringTree, root)
-
-    return stringTree
-  },
-
-  getTree: (root, tree) => {
-    merkleTree = JSON.parse(tree, (key, value) =>
-    typeof value === 'string'
-        ? BigNumber.from(value).toBigInt()
-        : value // return everything else unchanged
-    );
-    merkleTree._hash = poseidon
-
-    return merkleTree
-  },
-
-  generateGuessProofs: (tree, guess, gameIdentifier) => {
-    let proofs = []
-    for (let i = 0; i < tree.leaves.length; i++) {
-      const proof = tree.createProof(tree.indexOf(tree.leaves[i]))
-      proof.leaf = generateCommitment(hashInput(guess[i]), gameIdentifier)
-      proofs[i] = proof
-    }
-    return proofs
-  },
-
-  generateGuessProofs1: (tree, guess, gameIdentifier) => {
-    let proofs = []
-    for (let i = 0; i < tree._depth ** 2; i++) {
-      const leaf = generateCommitment(hashInput(guess[i]), gameIdentifier)
-      proofs[i] = createMerkleTreeProof(i, leaf, tree._depth, tree._arity, tree._nodes, tree._zeroes, tree._root)
-    }
-    return proofs
-  },
-
-  generateClue: (tree, gameIdentifier, guess) => {
-    const proofs = generateGuessProofs1(tree, guess, gameIdentifier)
-    
-    let clue = []
-    for (let i = 0; i < proofs.length; i++) {
-      const verified = verifyProof(proofs[i], tree._hash)
-      clue[i] = BigInt(verified)
-    }
-    return clue
-  },
-  hashInput: (input) => {
-    return BigInt("0x" + crypto.createHash('sha256').update(input).digest('hex'))
-  }
 }
-
 
 const generateCommitment = (input, gameIndentifier) => {
   return poseidon([input, gameIndentifier])
 }
 
-const hashInput = (input) => {
-  return BigInt("0x" + crypto.createHash('sha256').update(input).digest('hex'))
+const generateGuessProofs = (tree, guess, gameIdentifier) => {
+  let proofs = []
+  for (let i = 0; i < tree._depth ** 2; i++) {
+    const leaf = generateCommitment(guess.charCodeAt(i), gameIdentifier)
+    proofs[i] = createMerkleTreeProof(i, leaf, tree._depth, tree._arity, tree._nodes, tree._zeroes, tree._root)
+  }
+  return proofs
 }
 
-function createMerkleTreeProof(index, leaf, depth, arity, nodes, zeroes, root) {
+const generateClue = (tree, gameIdentifier, guess) => {
+  const proofs = generateGuessProofs(tree, guess, gameIdentifier)
+  
+  let clue = []
+  for (let i = 0; i < proofs.length; i++) {
+    const verified = verifyProof(proofs[i], tree._hash)
+    clue[i] = Number(verified)
+  }
+  return clue
+}
+
+const createInput = (guess, gameIdentifier, clue, tree) => {
+  let guessProofs = generateGuessProofs(tree, guess, gameIdentifier)
+
+  let letters = [];
+  let treePathIndices = [];
+  let treeSiblings = [];
+  for (let i = 0; i < guess.length; i++) {
+    letters.push(guess.charCodeAt(i))
+  }
+
+  for (const proof of guessProofs) {
+    treePathIndices.push(proof.pathIndices)
+    treeSiblings.push(proof.siblings)
+  }
+  
+  return {  
+    letters,
+    gameIdentifier,
+    clue,
+    treePathIndices,
+    treeSiblings,
+    root: tree._root
+  }
+}
+
+const createMerkleTreeProof = (index, leaf, depth, arity, nodes, zeroes, root) => {
   checkParameter(index, "index", "number");
   if (index < 0 || index >= nodes[0].length) {
       throw new Error("The leaf does not exist in this tree");
@@ -119,10 +246,10 @@ function createMerkleTreeProof(index, leaf, depth, arity, nodes, zeroes, root) {
   return { root: root, leaf, pathIndices: pathIndices, siblings: siblings };
 }
 
-function checkParameter(value, name) {
+const checkParameter = (value, name, ...args) => {
   var types = [];
-  for (var _i = 2; _i < arguments.length; _i++) {
-      types[_i - 2] = arguments[_i];
+  for (var _i = 0; _i < args.length; _i++) {
+      types[_i] = args[_i];
   }
   if (value === undefined) {
       throw new TypeError("Parameter '".concat(name, "' is not defined"));
@@ -132,26 +259,7 @@ function checkParameter(value, name) {
   }
 }
 
-const generateGuessProofs = (tree, guess, gameIdentifier) => {
-  let proofs = []
-  for (let i = 0; i < tree.leaves.length; i++) {
-    const proof = tree.createProof(tree.indexOf(tree.leaves[i]))
-    proof.leaf = generateCommitment(hashInput(guess[i]), gameIdentifier)
-    proofs[i] = proof
-  }
-  return proofs
-}
-
-const generateGuessProofs1 = (tree, guess, gameIdentifier) => {
-  let proofs = []
-  for (let i = 0; i < tree._depth ** 2; i++) {
-    const leaf = generateCommitment(hashInput(guess[i]), gameIdentifier)
-    proofs[i] = createMerkleTreeProof(i, leaf, tree._depth, tree._arity, tree._nodes, tree._zeroes, tree._root)
-  }
-  return proofs
-}
-
-function verifyProof(proof, hash) {
+const verifyProof = (proof, hash) => {
   checkParameter(proof, "proof", "object");
   checkParameter(proof.root, "proof.root", "number", "string", "bigint");
   checkParameter(proof.leaf, "proof.leaf", "number", "string", "bigint");
@@ -164,4 +272,24 @@ function verifyProof(proof, hash) {
       node = hash(children);
   }
   return proof.root === node;
+}
+
+const stringyTree = (tree) => {
+  const stringTree = JSON.stringify(tree, (key, value) =>
+      typeof value === 'bigint'
+          ? value.toString()
+          : value // return everything else unchanged
+  );
+  return stringTree
+}
+
+const jsonifyTree = (tree) => {
+  const merkleTree = JSON.parse(tree, (key, value) =>
+  typeof value === 'string'
+      ? BigNumber.from(value).toBigInt()
+      : value // return everything else unchanged
+  );
+  merkleTree._hash = poseidon
+
+  return merkleTree
 }
