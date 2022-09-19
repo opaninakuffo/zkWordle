@@ -33,21 +33,42 @@ module.exports = {
       }
     })
 
+    const wordleContract = await prisma.contract.findUnique({
+      where: {
+        name: 'wordle',
+      }
+    });
+
+    const verifierContract = await prisma.contract.findUnique({
+      where: {
+        name: 'clueVerifier',
+      }
+    });
+
     return {
       id: game.id,
-      root: game.root,
+      root: BigNumber.from(game.root).toHexString(),
       playerAddress,
       timestamp: Math.round(game.createdAt.getTime() / 1000),
+      wordleContractAddress: wordleContract.address,
+      verifierContractAddress: verifierContract.address
     }
-    // if user rejects, route api to delete game record
   },
 
-  playerGuess: async (id, guess) => {
+  playerGuess: async (id, guess, playerAddress) => {
     const game = await prisma.game.findUnique({
       where: {
         id: Number(id),
       }
     })
+
+    if (game.playerAddress !== playerAddress) {
+      throw Error("Not authorized to play this game.")
+    }
+
+    // if (!words.includes(guess)) {
+    //   throw Error("Word not in list!");
+    // }
 
     if (game.guessesLeft > 0 && game.status != 'won') {
       const tree = jsonifyTree(game.tree);
@@ -75,7 +96,7 @@ module.exports = {
             id: Number(id),
           },
           data: {
-            guessesLeft,
+            guessesLeft: 0,
             status: "won"
           },
         })

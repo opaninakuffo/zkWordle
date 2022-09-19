@@ -19,7 +19,8 @@ router.post('/game/guess/:id', async (req, res, next) => {
   try {
     const { id } = req.params
     const guess = req.body.guess
-    const payload = await utils.playerGuess(id, guess);
+    const playerAddress = req.body.playerAddress
+    const payload = await utils.playerGuess(id, guess, playerAddress);
     res.json(payload)
   } catch (error) {
     next(error)
@@ -39,7 +40,7 @@ router.get('/game/:id', async (req, res, next) => {
 router.delete('/game/:id', async (req, res, next) => {
   try {
     const { id } = req.params
-    const game = await utils.deleteGame(id);
+    await utils.deleteGame(id);
     res.json(`Successfuly deleted game #${id}`)
   } catch (error) {
     next(error)
