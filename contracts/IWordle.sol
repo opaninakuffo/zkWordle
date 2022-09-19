@@ -66,15 +66,13 @@ abstract contract IWordleGame {
      * Returns true if proof and clue are valid
      * @param _inputs uint[9] - public inputs required to verify proof
      * @param _a uint[2] - zk proof part 1
-     * @param _b_0 uint[2] - zk proof part 2 split 1
-     * @param _b_1 uint[2] - zk proof part 2 split 2
+     * @param _b uint[2][2] - zk proof part 2
      * @param _c uint[2] - zk proof part 3
      * @return _r bool - boolean representing whether claims are true or not
      */
     function verifyClue(
         uint[2] memory _a,
-        uint[2] memory _b_0,
-        uint[2] memory _b_1,
+        uint[2][2] memory _b,
         uint[2] memory _c,
         uint[9] memory _inputs
     ) external view virtual returns (bool _r);

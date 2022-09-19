@@ -8,9 +8,6 @@ set -e
 # if zk/zkey does not exist, make folder
 [ -d zk/zkey ] || mkdir zk/zkey
 
-# Compile circuits
-# circom zk/circuits/wordle.circom -o zk/ --r1cs --wasm
-
 #Setup
 yarn snarkjs groth16 setup zk/wordle.r1cs zk/ptau/pot12_final.ptau zk/zkey/wordle_final.zkey
 

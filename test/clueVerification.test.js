@@ -6,7 +6,7 @@ describe("wordle circuit", () => {
   let gameIdentifier = 29150614749387184043387219971263557698760458196189935422933546578031225912n;
 
   const sampleInput = {
-    letterIdentifier: [
+    letters: [
       6593403479551632167340824945835173196808254996897114921429971060245653209894n,
       46035725389219043963032057611081995832299103232747348342053558695288603472594n,
       58950432432975814727330150495812516852205624354772471794033072556055009430906n,
@@ -47,7 +47,7 @@ describe("wordle circuit", () => {
       sampleInput,
       sanityCheck
     );
-    assert.propertyVal(witness, "main.letterIdentifier", sampleInput.letterIdentifier);
+    assert.propertyVal(witness, "main.letters", sampleInput.letterIdentifier);
     assert.propertyVal(witness, "main.gameIdentifier", sampleInput.gameIdentifier);
     assert.propertyVal(witness, "main.treePathIndices", sampleInput.treePathIndices);
     assert.propertyVal(witness, "main.treeSiblings", sampleInput.treeSiblings);

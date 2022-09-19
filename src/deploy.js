@@ -10,14 +10,14 @@ const main = async() => {
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
   // Deploy the Clue Veriffier contract
-  const ClueVerifier = await ethers.getContractFactory("ClueVerifier");
+  const ClueVerifier = await hre.ethers.getContractFactory("ClueVerifier");
   const clueVerifier = await ClueVerifier.deploy();
   const clueVerifierAddress = clueVerifier.address;
   console.log("Clue Verifier On Chain Address:", clueVerifier.address);
   await clueVerifier.deployTransaction.wait();
 
   // Deploy the Wordle contract
-  const Wordle = await ethers.getContractFactory("Wordle");
+  const Wordle = await hre.ethers.getContractFactory("Wordle");
   const wordle = await Wordle.deploy(clueVerifierAddress);
 
   console.log("Wordle On Chain Address:", wordle.address);

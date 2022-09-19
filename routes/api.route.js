@@ -11,7 +11,6 @@ router.post('/game/setup', async (req, res, next) => {
     const game = await utils.setupGame(playerAddress, numberOfGuesses);
     res.json(game)
   } catch (error) {
-    console.log(error)
     next(error)
   }
 });

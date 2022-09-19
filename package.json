@@ -42,9 +42,11 @@
   "scripts": {
     "test": "yarn hardhat test",
     "ptau": "./scripts/ptau.sh",
-    "compile-circom": "circom zk/circuits/wordle.circom -o zk/ --r1cs --wasm",
+    "compile-circuits": "circom zk/circuits/wordle.circom -o zk/ --r1cs --wasm",
     "setup": "./scripts/circuits.sh",
-    "start": "node app.js",
-    "dev": "nodemon app.js"
+    "migrate-db": "npx primsa migrate deploy",
+    "deploy-contracts": "npx hardhat run src/deploy.js --network goerli",
+    "dev": "nodemon app.js",
+    "start": "node app.js"
   }
 }

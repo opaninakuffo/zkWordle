@@ -20,4 +20,31 @@ As a ZK game master, the goal is to convert this game from a trusted setup to a 
 # Assumptions, constraints and changes to original game that have been made in this POC:
 
 - Each game consists of only 4 letter words. 
-- Clue provided tells user whether the letters in their guess is in the right place or not. 
+- Clue provided tells user whether the letters in their guess is in the right place or not.
+
+# Usage
+```bash
+# Clone the repo
+git clone https://github.com/opaninakuffo/zkWordle.git
+
+# Install packages
+yarn install
+
+# Perform powers of tau ceremony
+yarn run ptau
+
+# Compile circom cirtuits
+yarn run compile-circuits
+
+# Generate Solidity verifier
+yarn run setup
+
+# Apply migrations to db
+yarn run migrate-db
+
+# Deploy game and verifier contracts to chain
+yarn run deploy-contracts
+
+# Run development server
+yarn run dev
+```
