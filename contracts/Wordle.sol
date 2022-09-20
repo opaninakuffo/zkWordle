@@ -7,7 +7,7 @@ import "./IWordle.sol";
 
 contract Wordle is IWordleGame, Ownable {
     constructor(address _cv) {
-        cv = IClueVerifier(_cv);
+        cv = _cv;
     }
 
     function createGame(
@@ -35,15 +35,5 @@ contract Wordle is IWordleGame, Ownable {
         root = games[_id].root;
         player = games[_id].player;
         createdAt = games[_id].createdAt;
-    }
-
-    function verifyClue(
-            uint[2] memory _a,
-            uint[2] memory _b_0,
-            uint[2] memory _b_1,
-            uint[2] memory _c,
-            uint[9] memory _inputs
-        ) public view override returns (bool _r) {
-            return cv.verifyProof(_a, [_b_0, _b_1], _c, _inputs);
     }
 }

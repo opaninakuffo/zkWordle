@@ -48,3 +48,7 @@ yarn run deploy-contracts
 # Run development server
 yarn run dev
 ```
+
+**BEWARE**
+
+**Whiles running locally access the application from http://127.0.0.1:3000/ instead of http://localhost:3000/ else the api calls would not work since express serving both front and back end concurrently**

@@ -1,14 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "./IClueVerifier.sol";
-
-
 /**
  * Abstraction for Zero-Knowledge Wordle Game
  */
 abstract contract IWordleGame {
-    IClueVerifier cv; // verifier for proving clue passed on to player
+    address public cv; // verifier for proving clue passed on to player
 
     struct Game {
         uint root; // root of game tree
@@ -61,19 +58,4 @@ abstract contract IWordleGame {
             address _player,
             uint _createdAt
         );
-
-    /**
-     * Returns true if proof and clue are valid
-     * @param _inputs uint[9] - public inputs required to verify proof
-     * @param _a uint[2] - zk proof part 1
-     * @param _b uint[2][2] - zk proof part 2
-     * @param _c uint[2] - zk proof part 3
-     * @return _r bool - boolean representing whether claims are true or not
-     */
-    function verifyClue(
-        uint[2] memory _a,
-        uint[2][2] memory _b,
-        uint[2] memory _c,
-        uint[9] memory _inputs
-    ) external view virtual returns (bool _r);
 }
