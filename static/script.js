@@ -93,7 +93,6 @@ function initBoard() {
       .catch((error) => {
         toastr.error(error.response.data.message)
       })
-    // const verifierContract = new ethers.Contract(verifierContractAddress, verifierAbi, provider);
 }
 
 function shadeKeyBoard(letter, color) {
@@ -225,6 +224,24 @@ function insertLetter (pressedKey) {
     box.classList.add("filled-box")
     currentGuess.push(pressedKey)
     nextLetter += 1
+}
+
+function verifyProof() {
+    let a = JSON.parse(document.getElementById("a").value)
+    let b = JSON.parse(document.getElementById("b").value)
+    let c = JSON.parse(document.getElementById("c").value)
+    let input = JSON.parse(document.getElementById("input").value)
+
+    const verifierContract = new ethers.Contract(verifierContractAddress, verifierAbi, signer)
+    verifierContract.verifyProof(a, b, c, input).then((response) => {
+            if (response == true) {
+                toastr.success("Clue verification passed");
+            } else {
+                toastr.error("Clue verification failed");
+            }
+        }).catch((error) => {
+            toastr.error(error)
+        })
 }
 
 const animateCSS = (element, animation, prefix = 'animate__') =>
