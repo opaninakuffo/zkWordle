@@ -14,7 +14,7 @@ Wordle is a game where a player is presented with a hidden random word and has a
 # Goal
 
 As a ZK game master, the goal is to convert this game from a trusted setup to a completely trustless setup using ZK and blockchain technologies (solidity, circom and snarkJS).
-- By Merkilizing the solution and storing on chain, player can be sure that game master will not switch up word during gameplay
+- By Merkilizing the solution and storing on chain, the player can be sure that game master will not switch up word during gameplay.
 - By providing a ZK proof of the clue, game master can prove to player that clue is right without having to reveal the solution in the process.
 
 # Assumptions, constraints and changes to original game that have been made in this POC:
