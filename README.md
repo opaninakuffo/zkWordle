@@ -8,7 +8,7 @@ Wordle is a game where a player is presented with a hidden random word and has a
 
 # Problems / Loopholes with current Wordle Implementations
 
-- Players must trust that game master does not cheat them by changing their word mid gameplay
+- Players must trust that game master does not cheat them by not changing their word during gameplay
 - Players must also trust that the clue being provided by the game master is right. 
 
 # Goal
