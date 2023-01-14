@@ -1,6 +1,6 @@
 # ZK Wordle
 
-This project presents a zero-knowledge version of the popular word guessing game called Wordle. 
+This project presents a zero-knowledge implementation of the popular word guessing game, Wordle. 
 
 # Wordle in a nutshell
 
