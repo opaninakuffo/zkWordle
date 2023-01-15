@@ -44,7 +44,7 @@
     "ptau": "./scripts/ptau.sh",
     "compile-circuits": "circom zk/circuits/wordle.circom -o zk/ --r1cs --wasm",
     "setup": "./scripts/circuits.sh",
-    "migrate-db": "npx primsa migrate deploy",
+    "migrate-db": "npx prisma migrate deploy",
     "deploy-contracts": "npx hardhat run src/deploy.js --network goerli",
     "dev": "nodemon app.js",
     "start": "node app.js"
