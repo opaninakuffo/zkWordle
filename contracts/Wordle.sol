@@ -15,7 +15,7 @@ contract Wordle is IWordleGame, Ownable {
         uint _root,
         address _player,
         uint _createdAt
-    ) external override onlyOwner {
+    ) external override {
         require(_player != address(0), "Player cannot be 0 address");
 
         games[_id].root = _root;
