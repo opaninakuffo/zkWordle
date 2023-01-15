@@ -136,7 +136,7 @@ function checkGuess () {
         url: `http://127.0.0.1:3000/api/game/guess/${id}`,
         data: {
             guess: guessString,
-            playerAddress: "0xd033F1e4DdF5E6FD9031504c0f28d3C0aA881e3a"
+            playerAddress
         }
     })
       .then((response) => {
