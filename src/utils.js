@@ -51,7 +51,8 @@ module.exports = {
       playerAddress,
       timestamp: Math.round(game.createdAt.getTime() / 1000),
       wordleContractAddress: wordleContract.address,
-      verifierContractAddress: verifierContract.address
+      verifierContractAddress: verifierContract.address,
+      chainId: wordleContract.chainId
     }
   },
 

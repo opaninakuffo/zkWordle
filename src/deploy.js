@@ -5,8 +5,10 @@ const prisma = new PrismaClient()
 
 const main = async() => {
   const [deployer] = await hre.ethers.getSigners();
+  const chainId = await deployer.getChainId();
 
-  console.log("Deploying contracts with the account:", deployer.address);
+  console.log("Deploying contracts with the account:", deployer.address); 
+  console.log("Chain ID:", chainId.toString());
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
   // Deploy the Clue Veriffier contract
@@ -29,10 +31,12 @@ const main = async() => {
     },
     update: {
       address: wordle.address,
+      chainId: chainId.toString()
     },
     create: {
       name: "wordle",
-      address: wordle.address
+      address: wordle.address,
+      chainId: chainId.toString()
     },
   })
 
@@ -42,10 +46,12 @@ const main = async() => {
     },
     update: {
       address: clueVerifier.address,
+      chainId: chainId.toString()
     },
     create: {
       name: "clueVerifier",
-      address: clueVerifier.address
+      address: clueVerifier.address,
+      chainId: chainId.toString()
     },
   })
   console.log("Successfully stored Clue Verifier and Wordle Addresses in DB");

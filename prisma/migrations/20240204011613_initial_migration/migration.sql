@@ -13,7 +13,8 @@ CREATE TABLE "Game" (
 -- CreateTable
 CREATE TABLE "Contract" (
     "name" TEXT NOT NULL PRIMARY KEY,
-    "address" TEXT NOT NULL
+    "address" TEXT NOT NULL,
+    "chainId" TEXT NOT NULL
 );
 
 -- CreateIndex

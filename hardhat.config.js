@@ -2,7 +2,7 @@ require('dotenv').config();
 require("@nomicfoundation/hardhat-toolbox");
 
 // private environment information
-const { ALCHEMY_API_URL, DEPLOYER_PRIVATE_KEY } = process.env
+const { RPC_URL, DEPLOYER_PRIVATE_KEY } = process.env
 
 /**
  * Return a hardhat compiler for a given version
@@ -28,8 +28,8 @@ module.exports = {
     compilers: [makeCompiler('0.6.11'), makeCompiler('0.8.17')],
   },
   networks: {
-    goerli: {
-      url: ALCHEMY_API_URL,
+    sepolia: {
+      url: RPC_URL,
       accounts: [DEPLOYER_PRIVATE_KEY]
     }
   }

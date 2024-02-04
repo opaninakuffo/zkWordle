@@ -74,11 +74,19 @@ function initBoard() {
         para.innerHTML = "ZK Verifier Chain Address: " + verifierContractAddress;
         gameInfo.appendChild(para)
 
+        chainId = response.data.chainId
+        para = document.createElement("p");
+        para.innerHTML = "Chain ID: " + chainId;
+        gameInfo.appendChild(para)
+
         createdAt = response.data.timestamp
 
         const wordleContract = new ethers.Contract(wordleContractAddress, wordleAbi, signer);
         wordleContract.createGame(id, root, playerAddress, createdAt).then((response) => {
-            toastr.success("Successfully logged game on chain. Tx Hash: " + response.hash);
+            toastr.success("Successfully logged game on chain");
+            para = document.createElement("p");
+            para.innerHTML = "Game Registration Tx Hash: " + response.hash;
+            gameInfo.appendChild(para)
         }).catch(() => {
             axios({
                 method: 'delete',
@@ -307,5 +315,10 @@ document.getElementById("keyboard-cont").addEventListener("click", (e) => {
 connnectPlayerWallet().then(() => {
     initBoard()
 }).catch((error) => {
+    let gameInfo = document.getElementById("error-info")
+    let para = document.createElement("p");
+    para.innerHTML = `Error: ${error.message}. Please reload page and connect wallet to play ZK Wordle.`;
+    para.style.color = "red";
+    gameInfo.appendChild(para)
     toastr.error(error.message + " Please reload page and connect wallet to play ZK Wordle.")
 })

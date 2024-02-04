@@ -24,4 +24,5 @@ model Game {
 model Contract {
   name String @id @unique
   address String
+  chainId String
 }
